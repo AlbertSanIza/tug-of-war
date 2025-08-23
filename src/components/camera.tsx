@@ -86,8 +86,8 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
                 right: { shoulder: 12, elbow: 14, wrist: 16 }
             } as const
 
-            const EXTENDED_THRESHOLD = 160
-            const DEPTH_THRESHOLD = 90
+            const EXTENDED_THRESHOLD = 140
+            const DEPTH_THRESHOLD = 100
 
             const fallbackDrawPoints = (points?: NormalizedLandmarkList | null, color = 'red') => {
                 if (!points) return
