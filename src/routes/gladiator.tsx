@@ -21,6 +21,8 @@ function RouteComponent() {
     const [dialogOpen, setDialogOpen] = useState(true)
     const connRef = useRef<DataConnection | null>(null)
     const videoRef = useRef<HTMLVideoElement | null>(null)
+    const [countdown, setCountdown] = useState<number | null>(null)
+    const [gameState, setGameState] = useState<'idle' | 'countdown' | 'running' | 'finished'>('idle')
 
     const form = useForm({
         defaultValues: { name: localStorage.getItem('gladiator-name') || '', arenaId: '' },
@@ -45,6 +47,23 @@ function RouteComponent() {
                 const conn = peer.connect(`tug-of-war-arena-${arenaId}`)
                 connRef.current = conn
                 conn.on('open', () => conn.send({ type: 'intro', name }))
+                conn.on('data', (data) => {
+                    const { type, state, count } = data as { type: 'gameState' | 'countdown'; state?: string; count?: number }
+                    switch (type) {
+                        case 'gameState':
+                            setGameState(state as any)
+                            if (state === 'running') {
+                                setCountdown(null)
+                            }
+                            break
+                        case 'countdown':
+                            setCountdown(count ?? null)
+                            if (count !== null) {
+                                setGameState('countdown')
+                            }
+                            break
+                    }
+                })
                 conn.on('error', () => {
                     connRef.current = null
                 })
@@ -73,17 +92,49 @@ function RouteComponent() {
     return (
         <>
             <section className="absolute inset-0 flex items-center justify-center p-6">
-                <div className="overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
+                <div
+                    className={cn(
+                        'overflow-hidden rounded-4xl border-4 backdrop-blur-sm transition-all duration-300',
+                        gameState === 'running' && 'border-8 border-green-500 shadow-lg shadow-green-500/50',
+                        gameState === 'countdown' && 'border-6 border-yellow-500'
+                    )}
+                >
                     <CameraRouteComponent
                         className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })}
                         onCount={(count) => connRef.current?.send({ type: 'pull', count })}
                     />
                     <video ref={videoRef} className={cn('hidden size-full h-1/2 object-contain', { hidden: dialogOpen })} playsInline />
                 </div>
+                {/* Countdown Display */}
+                {gameState === 'countdown' && countdown !== null && countdown > 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-pulse rounded-full bg-black/30 p-8 text-[2000%] font-bold text-yellow-400 text-shadow-lg/50">{countdown}</div>
+                    </div>
+                )}
+                {/* START! Indicator */}
+                {gameState === 'running' && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-[bounce_0.5s_ease-out_0s_3,fadeOut_0.5s_ease-in_1.5s_forwards] rounded-full bg-black/40 p-8 text-[1500%] font-bold text-green-400 text-shadow-lg/50">
+                            START!
+                        </div>
+                    </div>
+                )}
+                {/* Game Finished Indicator */}
+                {gameState === 'finished' && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-pulse text-[1200%] font-bold text-red-400 text-shadow-lg/50">GAME OVER!</div>
+                    </div>
+                )}
             </section>
             {!dialogOpen && (
                 <section className="absolute bottom-6 flex w-full items-center justify-center gap-3">
                     <Button onClick={() => connRef.current?.send({ type: 'ready' })}>Ready</Button>
+                    <div className="rounded-full bg-black/50 px-3 py-1 text-lg font-semibold text-white">
+                        {gameState === 'idle' && 'Waiting'}
+                        {gameState === 'countdown' && `Starting in ${countdown}...`}
+                        {gameState === 'running' && 'GO!'}
+                        {gameState === 'finished' && 'Game Over'}
+                    </div>
                 </section>
             )}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

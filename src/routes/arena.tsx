@@ -175,6 +175,7 @@ function RouteComponent() {
                                 setGameState('countdown')
                                 setRopePos(0)
                                 setCountdown(11)
+                                Object.values(dataConnsRef.current).forEach((conn) => conn.send({ type: 'countdown', count: 11 }))
                             }
                             return updated
                         })
@@ -195,6 +196,7 @@ function RouteComponent() {
                                 setGameState('finished')
                                 setWinnerPeerId(conn.peer)
                                 generateFireworks()
+                                Object.values(dataConnsRef.current).forEach((conn) => conn.send({ type: 'gameState', state: 'finished' }))
                             }
                             return next
                         })
@@ -264,9 +266,15 @@ function RouteComponent() {
         if (countdown <= 0) {
             setCountdown(null)
             setGameState('running')
+
+            Object.values(dataConnsRef.current).forEach((conn) => conn.send({ type: 'gameState', state: 'running' }))
             return
         }
-        countdownTimerRef.current = window.setTimeout(() => setCountdown((c) => (c ?? 0) - 1), 1000)
+        countdownTimerRef.current = window.setTimeout(() => {
+            const newCountdown = (countdown ?? 0) - 1
+            setCountdown(newCountdown)
+            Object.values(dataConnsRef.current).forEach((conn) => conn.send({ type: 'countdown', count: newCountdown }))
+        }, 1000)
         return () => {
             if (countdownTimerRef.current) {
                 window.clearTimeout(countdownTimerRef.current)

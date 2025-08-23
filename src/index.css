@@ -118,3 +118,14 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer utilities {
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+}
