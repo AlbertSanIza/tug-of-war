@@ -84,9 +84,6 @@ function RouteComponent() {
             {!dialogOpen && (
                 <section className="absolute bottom-6 flex w-full items-center justify-center gap-3">
                     <Button onClick={() => connRef.current?.send({ type: 'ready' })}>Ready</Button>
-                    <Button variant="secondary" onClick={() => connRef.current?.send({ type: 'pull' })}>
-                        Pull (Space)
-                    </Button>
                 </section>
             )}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
