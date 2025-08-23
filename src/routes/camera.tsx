@@ -37,11 +37,13 @@ function RouteComponent() {
     // Always use selfie mode
     const selfieMode = true
     const [effect, setEffect] = useState<'background' | 'mask'>('background')
-    const [selectedSide, setSelectedSide] = useState<'left' | 'right'>('right')
+    const [selectedSide, setSelectedSide] = useState<'left' | 'right' | 'both'>('both')
     const [reps, setReps] = useState(0)
     const repCountRef = useRef(0)
     const phaseRef = useRef<'up' | 'down' | 'unknown'>('unknown')
     const lastRepTimestampRef = useRef<number>(0)
+    const bottomHoldStartRef = useRef<number | null>(null)
+    const angleHistoryRef = useRef<number[]>([])
 
     useEffect(() => {
         testSupport(supported)
@@ -93,9 +95,11 @@ function RouteComponent() {
                 right: { shoulder: 12, elbow: 14, wrist: 16 }
             } as const
 
-            // Hysteresis thresholds
-            const UP_THRESHOLD_DEG = 155 // arms extended
-            const DOWN_THRESHOLD_DEG = 90 // arms bent
+            // Hysteresis thresholds and timing
+            const UP_THRESHOLD_DEG = 160 // arms extended
+            const DOWN_THRESHOLD_DEG = 95 // arms bent
+            const MIN_REP_INTERVAL_MS = 600
+            const MIN_BOTTOM_HOLD_MS = 200
 
             const fallbackDrawPoints = (points?: NormalizedLandmarkList | null, color = 'red') => {
                 if (!points) return
@@ -149,18 +153,47 @@ function RouteComponent() {
                     // Push-up counter logic
                     try {
                         const side = getSelectedSide()
-                        const ids = IDX[side]
                         const lm = results.poseLandmarks
-                        const shoulder = lm[ids.shoulder]
-                        const elbow = lm[ids.elbow]
-                        const wrist = lm[ids.wrist]
-                        const haveJoints = !!(shoulder && elbow && wrist)
-                        if (haveJoints) {
-                            const angle = angleAt(shoulder, elbow, wrist) // elbow angle
+                        const left = IDX.left
+                        const right = IDX.right
+                        const lOk = !!(lm[left.shoulder] && lm[left.elbow] && lm[left.wrist])
+                        const rOk = !!(lm[right.shoulder] && lm[right.elbow] && lm[right.wrist])
 
-                            // Draw angle text near elbow
-                            const ex = elbow.x * canvasEl!.width
-                            const ey = elbow.y * canvasEl!.height
+                        let primaryAngle: number | null = null
+                        let displayElbow: { x: number; y: number } | null = null
+                        if (side === 'both') {
+                            const lAngle = lOk ? angleAt(lm[left.shoulder], lm[left.elbow], lm[left.wrist]) : null
+                            const rAngle = rOk ? angleAt(lm[right.shoulder], lm[right.elbow], lm[right.wrist]) : null
+                            if (lAngle == null && rAngle == null) throw new Error('no elbows')
+                            if (lAngle != null && rAngle != null) {
+                                primaryAngle = Math.min(lAngle, rAngle)
+                                displayElbow = lAngle <= rAngle ? lm[left.elbow] : lm[right.elbow]
+                            } else if (lAngle != null) {
+                                primaryAngle = lAngle
+                                displayElbow = lm[left.elbow]
+                            } else if (rAngle != null) {
+                                primaryAngle = rAngle
+                                displayElbow = lm[right.elbow]
+                            }
+                        } else {
+                            const ids = IDX[side]
+                            if (!(lm[ids.shoulder] && lm[ids.elbow] && lm[ids.wrist])) throw new Error('missing joints')
+                            primaryAngle = angleAt(lm[ids.shoulder], lm[ids.elbow], lm[ids.wrist])
+                            displayElbow = lm[ids.elbow]
+                        }
+
+                        if (primaryAngle != null && displayElbow) {
+                            // Smoothing (median of last 5)
+                            const h = angleHistoryRef.current
+                            h.push(primaryAngle)
+                            if (h.length > 5) h.shift()
+                            const sorted = [...h].sort((a, b) => a - b)
+                            const median = sorted[Math.floor(sorted.length / 2)]
+                            const angle = median
+
+                            // Draw angle near the chosen elbow
+                            const ex = displayElbow.x * canvasEl!.width
+                            const ey = displayElbow.y * canvasEl!.height
                             ctx.fillStyle = 'rgba(0,0,0,0.6)'
                             ctx.fillRect(ex - 28, ey - 24, 56, 18)
                             ctx.fillStyle = 'yellow'
@@ -168,16 +201,37 @@ function RouteComponent() {
                             ctx.textAlign = 'center'
                             ctx.fillText(`${Math.round(angle)}°`, ex, ey - 10)
 
-                            // State machine with hysteresis
+                            // Plank-quality gate (shoulder-hip-knee straight)
+                            const hipIdx = side === 'left' ? 23 : side === 'right' ? 24 : 23 // use left by default for both
+                            const kneeIdx = side === 'left' ? 25 : side === 'right' ? 26 : 25
+                            const hip = lm[hipIdx]
+                            const shoulderForHip = lm[hipIdx === 23 ? 11 : 12]
+                            const knee = lm[kneeIdx]
+                            let plankOK = true
+                            if (hip && shoulderForHip && knee) {
+                                const hipAngle = angleAt(shoulderForHip, hip, knee)
+                                plankOK = hipAngle >= 165
+                            }
+
+                            // State machine with hysteresis and timing
                             const now = performance.now()
                             const prevPhase = phaseRef.current
                             let nextPhase = prevPhase
                             if (angle >= UP_THRESHOLD_DEG) nextPhase = 'up'
                             else if (angle <= DOWN_THRESHOLD_DEG) nextPhase = 'down'
 
-                            // Count on transition down -> up with debounce
+                            // Track bottom hold duration
+                            if (nextPhase === 'down') {
+                                if (bottomHoldStartRef.current == null) bottomHoldStartRef.current = now
+                            } else {
+                                bottomHoldStartRef.current = null
+                            }
+
+                            const heldBottomLongEnough = bottomHoldStartRef.current != null && now - bottomHoldStartRef.current >= MIN_BOTTOM_HOLD_MS
+
+                            // Count on transition down -> up if gated
                             if (prevPhase === 'down' && nextPhase === 'up') {
-                                if (now - lastRepTimestampRef.current > 600) {
+                                if (heldBottomLongEnough && plankOK && now - lastRepTimestampRef.current >= MIN_REP_INTERVAL_MS) {
                                     repCountRef.current += 1
                                     lastRepTimestampRef.current = now
                                     setReps(repCountRef.current)
@@ -279,11 +333,12 @@ function RouteComponent() {
                     <div className="flex items-center gap-2 text-sm">
                         <select
                             value={selectedSide}
-                            onChange={(e) => setSelectedSide(e.target.value as 'left' | 'right')}
-                            className="rounded border px-2 py-1 text-sm"
+                            onChange={(e) => setSelectedSide(e.target.value as 'left' | 'right' | 'both')}
+                            className="border rounded px-2 py-1 text-sm"
                         >
                             <option value="right">Right arm</option>
                             <option value="left">Left arm</option>
+                            <option value="both">Both arms</option>
                         </select>
                         <button
                             className="rounded border px-2 py-1 text-sm hover:bg-secondary"
@@ -292,6 +347,8 @@ function RouteComponent() {
                                 setReps(0)
                                 phaseRef.current = 'unknown'
                                 lastRepTimestampRef.current = 0
+                                bottomHoldStartRef.current = null
+                                angleHistoryRef.current = []
                             }}
                         >
                             Reset reps
