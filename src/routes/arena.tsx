@@ -308,7 +308,7 @@ function RouteComponent() {
                     )}
                 >
                     <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
-                        <video ref={videoLeftRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', leftWins && 'max-h-140')} playsInline />
+                        <video ref={videoLeftRef} className={cn('aspect-video h-5000 max-h-46 w-full object-cover', leftWins && 'max-h-140')} playsInline />
                         {!remoteStreamsRef.current[leftRightPeers.left] && (
                             <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-gray-900 text-white">
                                 <Loader2Icon className="size-10 animate-spin" />
@@ -329,7 +329,7 @@ function RouteComponent() {
                     )}
                 >
                     <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
-                        <video ref={videoRightRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', rightWins && 'max-h-140')} playsInline />
+                        <video ref={videoRightRef} className={cn('aspect-video h-5000 max-h-46 w-full object-cover', rightWins && 'max-h-140')} playsInline />
                         {!remoteStreamsRef.current[leftRightPeers.right] && (
                             <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-gray-900 text-white">
                                 <Loader2Icon className="size-10 animate-spin" />
