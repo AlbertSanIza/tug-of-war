@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import '@mediapipe/camera_utils'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import { HAND_CONNECTIONS, Holistic, POSE_CONNECTIONS, type LandmarkConnectionArray, type NormalizedLandmarkList, type Results } from '@mediapipe/holistic'
@@ -35,8 +36,6 @@ function RouteComponent() {
     const [ready, setReady] = useState(false)
     const holisticRef = useRef<Holistic | null>(null)
     const selfieMode = true
-    const [effect, setEffect] = useState<'background' | 'mask'>('background')
-    const [selectedSide, setSelectedSide] = useState<'left' | 'right' | 'both'>('both')
     const [reps, setReps] = useState(0)
     const repCountRef = useRef(0)
     const phaseRef = useRef<'up' | 'down'>('up')
@@ -68,8 +67,8 @@ function RouteComponent() {
             const canvasEl = canvasRef.current
             const ctx = canvasEl!.getContext('2d')!
 
-            const getActiveEffect = () => effect
-            const getSelectedSide = () => selectedSide
+            const getActiveEffect = () => 'background'
+            // Auto-tracking both arms (choose the more flexed / smaller elbow angle each frame)
 
             // Geometry helpers
             const toVec = (a: { x: number; y: number; z?: number }, b: { x: number; y: number; z?: number }) => {
@@ -147,7 +146,6 @@ function RouteComponent() {
                     }
                     // Simplified push-up counter logic
                     try {
-                        const side = getSelectedSide()
                         const lm = results.poseLandmarks
                         const left = IDX.left
                         const right = IDX.right
@@ -156,25 +154,18 @@ function RouteComponent() {
 
                         let primaryAngle: number | null = null
                         let displayElbow: { x: number; y: number } | null = null
-                        if (side === 'both') {
-                            const lAngle = lOk ? angleAt(lm[left.shoulder], lm[left.elbow], lm[left.wrist]) : null
-                            const rAngle = rOk ? angleAt(lm[right.shoulder], lm[right.elbow], lm[right.wrist]) : null
-                            if (lAngle == null && rAngle == null) throw new Error('no elbows')
-                            if (lAngle != null && rAngle != null) {
-                                primaryAngle = Math.min(lAngle, rAngle)
-                                displayElbow = lAngle <= rAngle ? lm[left.elbow] : lm[right.elbow]
-                            } else if (lAngle != null) {
-                                primaryAngle = lAngle
-                                displayElbow = lm[left.elbow]
-                            } else if (rAngle != null) {
-                                primaryAngle = rAngle
-                                displayElbow = lm[right.elbow]
-                            }
-                        } else {
-                            const ids = IDX[side]
-                            if (!(lm[ids.shoulder] && lm[ids.elbow] && lm[ids.wrist])) throw new Error('missing joints')
-                            primaryAngle = angleAt(lm[ids.shoulder], lm[ids.elbow], lm[ids.wrist])
-                            displayElbow = lm[ids.elbow]
+                        const lAngle = lOk ? angleAt(lm[left.shoulder], lm[left.elbow], lm[left.wrist]) : null
+                        const rAngle = rOk ? angleAt(lm[right.shoulder], lm[right.elbow], lm[right.wrist]) : null
+                        if (lAngle == null && rAngle == null) throw new Error('no elbows')
+                        if (lAngle != null && rAngle != null) {
+                            primaryAngle = Math.min(lAngle, rAngle)
+                            displayElbow = lAngle <= rAngle ? lm[left.elbow] : lm[right.elbow]
+                        } else if (lAngle != null) {
+                            primaryAngle = lAngle
+                            displayElbow = lm[left.elbow]
+                        } else if (rAngle != null) {
+                            primaryAngle = rAngle
+                            displayElbow = lm[right.elbow]
                         }
 
                         if (primaryAngle != null && displayElbow) {
@@ -317,36 +308,15 @@ function RouteComponent() {
         }
         // We intentionally exclude live/form feedback states to avoid reinitializing MediaPipe every render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [effect, selectedSide]) // selfieMode constant
+    }, []) // selfieMode constant
 
     return (
         <div className="flex flex-col gap-4 p-4">
-            <h1 className="text-xl font-semibold">Camera / Holistic Demo</h1>
             <div className="flex flex-wrap gap-4">
                 <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2 text-sm">
-                        <select
-                            value={effect}
-                            onChange={(e) => setEffect(e.target.value as 'background' | 'mask')}
-                            className="rounded border px-2 py-1 text-sm"
-                        >
-                            <option value="background">Background</option>
-                            <option value="mask">Foreground</option>
-                        </select>
-                        Effect
-                    </label>
                     <div className="flex items-center gap-2 text-sm">
-                        <select
-                            value={selectedSide}
-                            onChange={(e) => setSelectedSide(e.target.value as 'left' | 'right' | 'both')}
-                            className="border rounded px-2 py-1 text-sm"
-                        >
-                            <option value="right">Right arm</option>
-                            <option value="left">Left arm</option>
-                            <option value="both">Both arms</option>
-                        </select>
-                        <button
-                            className="rounded border px-2 py-1 text-sm hover:bg-secondary"
+                        <Button
+                            className="rounded border px-2 py-1 text-sm"
                             onClick={() => {
                                 repCountRef.current = 0
                                 setReps(0)
@@ -355,11 +325,11 @@ function RouteComponent() {
                             }}
                         >
                             Reset reps
-                        </button>
+                        </Button>
                     </div>
                     {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
                     {ready && (
-                        <div className="flex flex-col opacity-80 text-sm">
+                        <div className="flex flex-col text-sm opacity-80">
                             Reps: <span className="font-semibold">{reps}</span>
                         </div>
                     )}
