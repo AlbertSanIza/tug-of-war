@@ -11,7 +11,7 @@ export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
-export const WIN_THRESHOLD = 10
+export const WIN_THRESHOLD = 6
 
 type ArenaConnectionState = 'idle' | 'listening' | 'error'
 type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
