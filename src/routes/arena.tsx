@@ -1,12 +1,18 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import confetti from 'canvas-confetti'
+import Peer, { type DataConnection } from 'peerjs'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
+type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
 function RouteComponent() {
+    const [ropePos, setRopePos] = useState(0)
     return (
         <>
             <section id="environment" className="absolute inset-0">
@@ -28,13 +34,23 @@ function RouteComponent() {
                     alt="Left warrior"
                     src="/warrior-left.png"
                     draggable={false}
-                    className={cn('pointer-events-none absolute bottom-[9%] h-[44%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none')}
+                    style={{ left: `${8 + ropePos * 3}%` }}
+                    className={cn(
+                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none',
+                        rightWins && 'bottom-[2%]! left-[2%]! h-[10%] animate-spin',
+                        leftWins && 'left-[2%]! h-[56%]'
+                    )}
                 />
                 <img
                     alt="Right warrior"
                     src="/warrior-right.png"
                     draggable={false}
-                    className={cn('pointer-events-none absolute bottom-[9%] h-[44%] w-auto drop-shadow-2xl drop-shadow-red-900 transition-all select-none')}
+                    style={{ right: `${8 + -ropePos * 3}%` }}
+                    className={cn(
+                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none',
+                        leftWins && 'right-[2%]! bottom-[2%]! h-[10%] animate-spin',
+                        rightWins && 'right-[2%]! h-[56%]'
+                    )}
                 />
             </section>
             <section className="absolute top-6 left-6">
@@ -42,6 +58,9 @@ function RouteComponent() {
                     <Link to="/">Back</Link>
                 </Button>
             </section>
+            {gameState === 'countdown' && countdown !== null && countdown > 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-[2600%] text-orange-100 text-shadow-lg/30">{countdown}</div>
+            )}
         </>
     )
 }
