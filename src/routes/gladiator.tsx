@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { CameraRouteComponent } from './camera'
 
 export const Route = createFileRoute('/gladiator')({
     component: RouteComponent
@@ -78,7 +79,8 @@ function RouteComponent() {
         <>
             <section className="absolute inset-0 flex items-center justify-center p-6">
                 <div className="overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
-                    <video ref={videoRef} className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })} playsInline />
+                    <CameraRouteComponent className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })} />
+                    <video ref={videoRef} className={cn('hidden size-full h-1/2 object-contain', { hidden: dialogOpen })} playsInline />
                 </div>
             </section>
             {!dialogOpen && (

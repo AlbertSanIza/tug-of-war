@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import '@mediapipe/camera_utils'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import { HAND_CONNECTIONS, Holistic, POSE_CONNECTIONS, type LandmarkConnectionArray, type NormalizedLandmarkList, type Results } from '@mediapipe/holistic'
@@ -7,7 +7,7 @@ import DeviceDetector from 'device-detector-js'
 import { useEffect, useRef, useState } from 'react'
 
 export const Route = createFileRoute('/camera')({
-    component: RouteComponent
+    component: CameraRouteComponent
 })
 
 interface SupportedDeviceRule {
@@ -30,13 +30,12 @@ function testSupport(rules: SupportedDeviceRule[]) {
     }
 }
 
-function RouteComponent() {
+export function CameraRouteComponent({ className }: { className?: string }) {
     const videoRef = useRef<HTMLVideoElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const [ready, setReady] = useState(false)
     const holisticRef = useRef<Holistic | null>(null)
     const selfieMode = true
-    const [reps, setReps] = useState(0)
     const repCountRef = useRef(0)
     const phaseRef = useRef<'up' | 'down'>('up')
     const depthReachedRef = useRef(false)
@@ -216,7 +215,6 @@ function RouteComponent() {
                                 }
                                 if (depthReachedRef.current && angle >= EXTENDED_THRESHOLD && phaseRef.current === 'down') {
                                     repCountRef.current += 1
-                                    setReps(repCountRef.current)
                                     depthReachedRef.current = false
                                     phaseRef.current = 'up'
                                 }
@@ -311,35 +309,15 @@ function RouteComponent() {
     }, []) // selfieMode constant
 
     return (
-        <div className="flex flex-col gap-4 p-4">
-            <div className="flex flex-wrap gap-4">
-                <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-sm">
-                        <Button
-                            className="rounded border px-2 py-1 text-sm"
-                            onClick={() => {
-                                repCountRef.current = 0
-                                setReps(0)
-                                phaseRef.current = 'up'
-                                depthReachedRef.current = false
-                            }}
-                        >
-                            Reset reps
-                        </Button>
-                    </div>
-                    {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
-                    {ready && (
-                        <div className="flex flex-col text-sm opacity-80">
-                            Reps: <span className="font-semibold">{reps}</span>
-                        </div>
-                    )}
-                </div>
-                <div className="relative flex h-full w-full items-center justify-center">
-                    <canvas ref={canvasRef} className="h-2xl w-2xl rounded border" />
-                    <video ref={videoRef} autoPlay muted playsInline className="selfie hidden opacity-0" />
-                </div>
+        <div className={cn(className)}>
+            <div className="flex items-center gap-2 text-sm"></div>
+            {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
+            {ready && <div className="flex flex-col text-sm opacity-80"></div>}
+
+            <div className="relative flex h-full w-full items-center justify-center">
+                <canvas ref={canvasRef} className="rounded border" />
+                <video ref={videoRef} autoPlay muted playsInline className="selfie hidden opacity-0" />
             </div>
-            <p className="text-xs opacity-70">Powered by MediaPipe Holistic</p>
         </div>
     )
 }
