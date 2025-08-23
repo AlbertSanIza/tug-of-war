@@ -8,7 +8,7 @@ import '@/index.css'
 import { routeTree } from '@/lib/route-tree.gen'
 
 const hashHistory = createHashHistory()
-const router = createRouter({ routeTree, history: hashHistory, basepath: '/tug-of-war/' })
+const router = createRouter({ routeTree, history: hashHistory })
 
 declare module '@tanstack/react-router' {
     interface Register {

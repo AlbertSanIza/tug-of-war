@@ -6,6 +6,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+    base: '/tug-of-war',
     plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true, generatedRouteTree: './src/lib/route-tree.gen.ts' }), react(), tailwindcss()],
     resolve: {
         alias: {
