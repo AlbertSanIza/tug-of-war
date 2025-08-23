@@ -74,6 +74,19 @@ function RouteComponent() {
                     <Link to="/">Back</Link>
                 </Button>
             </section>
+            <section className="absolute top-6 right-6 flex items-center gap-2 text-orange-200">
+                <Button
+                    size="sm"
+                    disabled={!id}
+                    onClick={() => {
+                        toast('Copied Arena ID to Clipboard', { description: 'You can share this with Gladiators to connect to the Arena!' })
+                        navigator.clipboard.writeText(id || '')
+                    }}
+                >
+                    {id ? `Arena ID: ${id}` : 'Connecting...'}
+                </Button>
+                <div className={cn('my-3 size-2 rounded-full bg-red-500', status === 'listening' ? 'bg-green-500' : 'animate-pulse')} />
+            </section>
             {gameState === 'countdown' && countdown !== null && countdown > 0 && (
                 <div className="absolute inset-0 flex items-center justify-center text-[2600%] text-orange-100 text-shadow-lg/30">{countdown}</div>
             )}
