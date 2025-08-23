@@ -96,7 +96,6 @@ function RouteComponent() {
                         <DialogTitle>Enter Arena</DialogTitle>
                         <DialogDescription className="hidden" />
                     </DialogHeader>
-
                     <form
                         className="flex flex-col gap-4"
                         onSubmit={(event) => {
