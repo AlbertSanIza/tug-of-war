@@ -196,13 +196,15 @@ function RouteComponent() {
                 <div className="translate absolute bottom-[6%] left-[50%] h-[10%] w-2 -translate-x-1/2 border bg-white opacity-60" />
             </section>
             <section id="cameras" className="absolute flex w-full justify-center gap-6 p-8">
-                <div className={cn('text-center', rightWins && 'hidden', leftWins && 'text-right')}>
-                    <div
-                        className={cn(
-                            'size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm',
-                            readyPeerIds.includes(leftRightPeers.left) && 'border-green-500'
-                        )}
-                    >
+                <div
+                    className={cn(
+                        'text-center transition-all',
+                        !readyPeerIds.includes(leftRightPeers.left) && 'opacity-40',
+                        rightWins && 'hidden',
+                        leftWins && 'text-right'
+                    )}
+                >
+                    <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
                         <video ref={videoLeftRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', leftWins && 'max-h-140')} playsInline />
                     </div>
                     <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', leftWins && 'animate-pulse text-8xl font-black')}>
@@ -210,13 +212,15 @@ function RouteComponent() {
                     </span>
                 </div>
                 {gameState !== 'finished' && <span className="mt-14 text-6xl font-bold text-orange-200 text-shadow-lg/30">vs</span>}
-                <div className={cn('text-center', leftWins && 'hidden', rightWins && 'text-left')}>
-                    <div
-                        className={cn(
-                            'size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm',
-                            readyPeerIds.includes(leftRightPeers.right || '') && 'border-green-500'
-                        )}
-                    >
+                <div
+                    className={cn(
+                        'text-center transition-all',
+                        !readyPeerIds.includes(leftRightPeers.left) && 'opacity-40',
+                        leftWins && 'hidden',
+                        rightWins && 'text-left'
+                    )}
+                >
+                    <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
                         <video ref={videoRightRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', rightWins && 'max-h-140')} playsInline />
                     </div>
                     <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', rightWins && 'animate-pulse text-8xl font-bold')}>
