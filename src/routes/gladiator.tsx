@@ -2,6 +2,7 @@ import { useForm } from '@tanstack/react-form'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { REGEXP_ONLY_CHARS } from 'input-otp'
 import Peer, { type DataConnection } from 'peerjs'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -9,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const Route = createFileRoute('/gladiator')({
     component: RouteComponent
@@ -120,7 +120,7 @@ function RouteComponent() {
                                             autoComplete="off"
                                             placeholder="Username"
                                             value={field.state.value}
-                                            autoFocus
+                                            autoFocus={!field.state.value}
                                             onChange={(event) => field.handleChange(event.target.value)}
                                         />
                                         {!field.state.meta.isValid && <em className="text-sm text-red-500">{field.state.meta.errors.join(',')}</em>}
