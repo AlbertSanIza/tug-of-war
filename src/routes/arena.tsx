@@ -5,5 +5,9 @@ export const Route = createFileRoute('/arena')({
 })
 
 function RouteComponent() {
-    return <div>Hello "/arena"!</div>
+    return (
+        <>
+            <section></section>
+        </>
+    )
 }
