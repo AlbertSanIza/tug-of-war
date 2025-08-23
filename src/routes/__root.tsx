@@ -6,8 +6,10 @@ export const Route = createRootRoute({
 
 function RootComponent() {
     return (
-        <div className="relative aspect-[3/2] w-[min(100vw,150vh)] bg-[url(/arena2.png)] bg-contain bg-center bg-no-repeat">
-            <Outlet />
-        </div>
+        <main className="fixed flex size-full items-center justify-center">
+            <div className="w-screen h-screen bg-[url('/arena2.png')] bg-contain bg-no-repeat bg-top">
+                <Outlet />
+            </div>
+        </main>
     )
 }
