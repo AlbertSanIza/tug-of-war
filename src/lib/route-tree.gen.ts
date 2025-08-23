@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './../routes/__root'
+import { Route as CameraRouteImport } from './../routes/camera'
 import { Route as ArenaRouteImport } from './../routes/arena'
 import { Route as IndexRouteImport } from './../routes/index'
 
+const CameraRoute = CameraRouteImport.update({
+  id: '/camera',
+  path: '/camera',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArenaRoute = ArenaRouteImport.update({
   id: '/arena',
   path: '/arena',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/arena'
+  fullPaths: '/' | '/arena' | '/camera'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/arena'
-  id: '__root__' | '/' | '/arena'
+  to: '/' | '/arena' | '/camera'
+  id: '__root__' | '/' | '/arena' | '/camera'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArenaRoute: typeof ArenaRoute
+  CameraRoute: typeof CameraRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/camera': {
+      id: '/camera'
+      path: '/camera'
+      fullPath: '/camera'
+      preLoaderRoute: typeof CameraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/arena': {
       id: '/arena'
       path: '/arena'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArenaRoute: ArenaRoute,
+  CameraRoute: CameraRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
