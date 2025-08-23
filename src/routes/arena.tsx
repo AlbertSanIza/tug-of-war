@@ -11,7 +11,7 @@ export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
-export const WIN_THRESHOLD = 10
+export const WIN_THRESHOLD = 5
 
 type ArenaConnectionState = 'idle' | 'listening' | 'error'
 type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
@@ -193,6 +193,15 @@ function RouteComponent() {
                     className="pointer-events-none absolute top-[10%] right-[7%] h-[12%] w-auto drop-shadow-2xl drop-shadow-red-500 select-none"
                     draggable={false}
                 />
+                <div className="translate absolute bottom-[8%] left-[23.5%] h-[10%] w-2 -translate-x-1/2 rotate-48 border bg-red-500 opacity-50" />
+                <div className="translate absolute bottom-[7%] left-[30%] h-[10%] w-2 -translate-x-1/2 rotate-36 border bg-red-500 opacity-50" />
+                <div className="translate absolute bottom-[6.5%] left-[36.5%] h-[10%] w-2 -translate-x-1/2 rotate-24 border bg-red-500 opacity-50" />
+                <div className="translate absolute bottom-[6%] left-[43.5%] h-[10%] w-2 -translate-x-1/2 rotate-12 border bg-red-500 opacity-50" />
+                <div className="translate absolute bottom-[6%] left-[50%] h-[10%] w-2 -translate-x-1/2 border bg-white/50 opacity-50" />
+                <div className="translate absolute bottom-[6%] left-[56.5%] h-[10%] w-2 -translate-x-1/2 -rotate-12 border bg-blue-500 opacity-50" />
+                <div className="translate absolute bottom-[6.5%] left-[63.5%] h-[10%] w-2 -translate-x-1/2 -rotate-24 border bg-blue-500 opacity-50" />
+                <div className="translate absolute bottom-[7%] left-[70%] h-[10%] w-2 -translate-x-1/2 -rotate-36 border bg-blue-500 opacity-50" />
+                <div className="translate absolute bottom-[8%] left-[76.5%] h-[10%] w-2 -translate-x-1/2 -rotate-48 border bg-blue-500 opacity-50" />
             </section>
             <section id="cameras" className="absolute flex w-full justify-center gap-6 p-8">
                 <div className={cn('text-center', rightWins && 'hidden', leftWins && 'text-right')}>
