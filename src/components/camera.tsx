@@ -4,6 +4,7 @@ import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import { HAND_CONNECTIONS, Holistic, POSE_CONNECTIONS, type LandmarkConnectionArray, type NormalizedLandmarkList, type Results } from '@mediapipe/holistic'
 import DeviceDetector from 'device-detector-js'
 import { useEffect, useRef, useState } from 'react'
+import { Button } from './ui/button'
 
 interface SupportedDeviceRule {
     client?: string
@@ -252,21 +253,6 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
                     ctx.fillText('No landmarks detected. Ensure good lighting and full body in frame.', 10, 20)
                 }
 
-                // Overlay panel
-                const panelW = 180
-                const panelH = 60
-                ctx.fillStyle = 'rgba(0,0,0,0.45)'
-                ctx.fillRect(8, 28, panelW, panelH)
-                ctx.textAlign = 'left'
-                ctx.font = '32px sans-serif'
-                ctx.fillStyle = '#4ade80'
-                ctx.fillText(`Reps: ${repCountRef.current}`, 16, 52)
-                if (torsoAngleRef.current != null) {
-                    ctx.font = '12px sans-serif'
-                    ctx.fillStyle = '#fff'
-                    ctx.fillText(`Torso: ${Math.round(torsoAngleRef.current)}°`, 16, 68)
-                }
-
                 ctx.restore()
             })
 
@@ -307,11 +293,11 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
         <div className={cn(className)}>
             <div className="flex items-center gap-2 text-sm"></div>
             {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
-            {ready && <div className="flex flex-col text-sm opacity-80"></div>}
 
             <div className="relative flex h-full w-full items-center justify-center">
                 <canvas ref={canvasRef} className="rounded border" />
                 <video ref={videoRef} autoPlay muted playsInline className="selfie hidden opacity-0" />
+                <Button className="absolute top-7 left-2 flex h-15 w-45 text-xl">Reps: {repCountRef.current}</Button>
             </div>
         </div>
     )
