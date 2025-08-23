@@ -37,6 +37,11 @@ function RouteComponent() {
     // Always use selfie mode
     const selfieMode = true
     const [effect, setEffect] = useState<'background' | 'mask'>('background')
+    const [selectedSide, setSelectedSide] = useState<'left' | 'right'>('right')
+    const [reps, setReps] = useState(0)
+    const repCountRef = useRef(0)
+    const phaseRef = useRef<'up' | 'down' | 'unknown'>('unknown')
+    const lastRepTimestampRef = useRef<number>(0)
 
     useEffect(() => {
         testSupport(supported)
@@ -64,6 +69,33 @@ function RouteComponent() {
             const ctx = canvasEl!.getContext('2d')!
 
             const getActiveEffect = () => effect
+            const getSelectedSide = () => selectedSide
+
+            // Geometry helpers
+            const toVec = (a: { x: number; y: number; z?: number }, b: { x: number; y: number; z?: number }) => {
+                return { x: a.x - b.x, y: a.y - b.y, z: (a.z || 0) - (b.z || 0) }
+            }
+            const dot = (u: { x: number; y: number; z: number }, v: { x: number; y: number; z: number }) => u.x * v.x + u.y * v.y + u.z * v.z
+            const mag = (u: { x: number; y: number; z: number }) => Math.hypot(u.x, u.y, u.z)
+            const angleAt = (a: { x: number; y: number; z?: number }, b: { x: number; y: number; z?: number }, c: { x: number; y: number; z?: number }) => {
+                const ba = toVec(a, b)
+                const bc = toVec(c, b)
+                const cosTheta =
+                    dot({ x: ba.x, y: ba.y, z: ba.z || 0 }, { x: bc.x, y: bc.y, z: bc.z || 0 }) /
+                    (mag({ x: ba.x, y: ba.y, z: ba.z || 0 }) * mag({ x: bc.x, y: bc.y, z: bc.z || 0 }) || 1)
+                const clamped = Math.min(1, Math.max(-1, cosTheta))
+                return (Math.acos(clamped) * 180) / Math.PI
+            }
+
+            // BlazePose indices for elbows
+            const IDX = {
+                left: { shoulder: 11, elbow: 13, wrist: 15 },
+                right: { shoulder: 12, elbow: 14, wrist: 16 }
+            } as const
+
+            // Hysteresis thresholds
+            const UP_THRESHOLD_DEG = 155 // arms extended
+            const DOWN_THRESHOLD_DEG = 90 // arms bent
 
             const fallbackDrawPoints = (points?: NormalizedLandmarkList | null, color = 'red') => {
                 if (!points) return
@@ -114,6 +146,48 @@ function RouteComponent() {
                     } catch {
                         fallbackDrawPoints(results.poseLandmarks, 'orange')
                     }
+                    // Push-up counter logic
+                    try {
+                        const side = getSelectedSide()
+                        const ids = IDX[side]
+                        const lm = results.poseLandmarks
+                        const shoulder = lm[ids.shoulder]
+                        const elbow = lm[ids.elbow]
+                        const wrist = lm[ids.wrist]
+                        const haveJoints = !!(shoulder && elbow && wrist)
+                        if (haveJoints) {
+                            const angle = angleAt(shoulder, elbow, wrist) // elbow angle
+
+                            // Draw angle text near elbow
+                            const ex = elbow.x * canvasEl!.width
+                            const ey = elbow.y * canvasEl!.height
+                            ctx.fillStyle = 'rgba(0,0,0,0.6)'
+                            ctx.fillRect(ex - 28, ey - 24, 56, 18)
+                            ctx.fillStyle = 'yellow'
+                            ctx.font = '12px sans-serif'
+                            ctx.textAlign = 'center'
+                            ctx.fillText(`${Math.round(angle)}°`, ex, ey - 10)
+
+                            // State machine with hysteresis
+                            const now = performance.now()
+                            const prevPhase = phaseRef.current
+                            let nextPhase = prevPhase
+                            if (angle >= UP_THRESHOLD_DEG) nextPhase = 'up'
+                            else if (angle <= DOWN_THRESHOLD_DEG) nextPhase = 'down'
+
+                            // Count on transition down -> up with debounce
+                            if (prevPhase === 'down' && nextPhase === 'up') {
+                                if (now - lastRepTimestampRef.current > 600) {
+                                    repCountRef.current += 1
+                                    lastRepTimestampRef.current = now
+                                    setReps(repCountRef.current)
+                                }
+                            }
+                            phaseRef.current = nextPhase
+                        }
+                    } catch {
+                        // ignore counter errors
+                    }
                 }
                 if (results.leftHandLandmarks) {
                     try {
@@ -143,6 +217,14 @@ function RouteComponent() {
                     ctx.font = '14px sans-serif'
                     ctx.fillText('No landmarks detected. Ensure good lighting and full body in frame.', 10, 20)
                 }
+
+                // Overlay rep counter
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'
+                ctx.fillRect(8, 28, 120, 28)
+                ctx.fillStyle = 'lime'
+                ctx.font = '18px sans-serif'
+                ctx.textAlign = 'left'
+                ctx.fillText(`Reps: ${repCountRef.current}`, 14, 48)
 
                 ctx.restore()
             })
@@ -176,7 +258,7 @@ function RouteComponent() {
         return () => {
             cancelled = true
         }
-    }, [effect]) // selfieMode removed from deps
+    }, [effect, selectedSide]) // selfieMode removed from deps
 
     return (
         <div className="flex flex-col gap-4 p-4">
@@ -194,7 +276,33 @@ function RouteComponent() {
                         </select>
                         Effect
                     </label>
+                    <div className="flex items-center gap-2 text-sm">
+                        <select
+                            value={selectedSide}
+                            onChange={(e) => setSelectedSide(e.target.value as 'left' | 'right')}
+                            className="border rounded px-2 py-1 text-sm"
+                        >
+                            <option value="right">Right arm</option>
+                            <option value="left">Left arm</option>
+                        </select>
+                        <button
+                            className="border rounded px-2 py-1 text-sm hover:bg-secondary"
+                            onClick={() => {
+                                repCountRef.current = 0
+                                setReps(0)
+                                phaseRef.current = 'unknown'
+                                lastRepTimestampRef.current = 0
+                            }}
+                        >
+                            Reset reps
+                        </button>
+                    </div>
                     {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
+                    {ready && (
+                        <p className="text-sm opacity-80">
+                            Reps: <span className="font-semibold">{reps}</span>
+                        </p>
+                    )}
                 </div>
                 <div className="relative h-full w-full">
                     <canvas ref={canvasRef} className="rounded border h-full w-full" />
