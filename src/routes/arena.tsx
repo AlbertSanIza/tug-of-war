@@ -11,7 +11,7 @@ export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
-export const WIN_THRESHOLD = 5
+export const WIN_THRESHOLD = 10
 
 type ArenaConnectionState = 'idle' | 'listening' | 'error'
 type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
@@ -193,15 +193,7 @@ function RouteComponent() {
                     className="pointer-events-none absolute top-[10%] right-[7%] h-[12%] w-auto drop-shadow-2xl drop-shadow-red-500 select-none"
                     draggable={false}
                 />
-                <div className="translate absolute bottom-[8%] left-[23.5%] h-[10%] w-2 -translate-x-1/2 rotate-48 border bg-red-500 opacity-50" />
-                <div className="translate absolute bottom-[7%] left-[30%] h-[10%] w-2 -translate-x-1/2 rotate-36 border bg-red-500 opacity-50" />
-                <div className="translate absolute bottom-[6.5%] left-[36.5%] h-[10%] w-2 -translate-x-1/2 rotate-24 border bg-red-500 opacity-50" />
-                <div className="translate absolute bottom-[6%] left-[43.5%] h-[10%] w-2 -translate-x-1/2 rotate-12 border bg-red-500 opacity-50" />
-                <div className="translate absolute bottom-[6%] left-[50%] h-[10%] w-2 -translate-x-1/2 border bg-white/50 opacity-50" />
-                <div className="translate absolute bottom-[6%] left-[56.5%] h-[10%] w-2 -translate-x-1/2 -rotate-12 border bg-blue-500 opacity-50" />
-                <div className="translate absolute bottom-[6.5%] left-[63.5%] h-[10%] w-2 -translate-x-1/2 -rotate-24 border bg-blue-500 opacity-50" />
-                <div className="translate absolute bottom-[7%] left-[70%] h-[10%] w-2 -translate-x-1/2 -rotate-36 border bg-blue-500 opacity-50" />
-                <div className="translate absolute bottom-[8%] left-[76.5%] h-[10%] w-2 -translate-x-1/2 -rotate-48 border bg-blue-500 opacity-50" />
+                <div className="translate absolute bottom-[6%] left-[50%] h-[10%] w-2 -translate-x-1/2 border bg-white opacity-60" />
             </section>
             <section id="cameras" className="absolute flex w-full justify-center gap-6 p-8">
                 <div className={cn('text-center', rightWins && 'hidden', leftWins && 'text-right')}>
@@ -238,14 +230,14 @@ function RouteComponent() {
                         <div
                             id="rope"
                             className="absolute bottom-[34%] h-[2%] border-2 border-amber-500 bg-[url(/rope.png)] transition-all"
-                            style={{ left: `${18 + ropePos * 3}%`, right: `${18 + -ropePos * 3}%` }}
+                            style={{ left: `${18 + ropePos * 8}%`, right: `${18 + -ropePos * 8}%` }}
                         />
                         <img
                             alt="Red Center Flag"
                             src="/flag.png"
                             className="pointer-events-none absolute bottom-[18%] left-1/2 h-[26%] w-auto -translate-x-1/2 transition-all select-none"
                             draggable={false}
-                            style={{ left: `${50 + ropePos * 3}%` }}
+                            style={{ left: `${50 + ropePos * 8}%` }}
                         />
                     </>
                 )}
@@ -253,7 +245,7 @@ function RouteComponent() {
                     alt="Left warrior"
                     src="/warrior-left.png"
                     draggable={false}
-                    style={{ left: `${8 + ropePos * 3}%` }}
+                    style={{ left: `${8 + ropePos * 8}%` }}
                     className={cn(
                         'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-red-500 transition-all select-none',
                         rightWins && 'bottom-[2%]! left-[2%]! h-[10%] animate-spin',
@@ -264,7 +256,7 @@ function RouteComponent() {
                     alt="Right warrior"
                     src="/warrior-right.png"
                     draggable={false}
-                    style={{ right: `${8 + -ropePos * 3}%` }}
+                    style={{ right: `${8 + -ropePos * 8}%` }}
                     className={cn(
                         'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-500 transition-all select-none',
                         leftWins && 'right-[2%]! bottom-[2%]! h-[10%] animate-spin',
