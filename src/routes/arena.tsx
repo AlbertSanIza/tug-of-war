@@ -296,18 +296,6 @@ function RouteComponent() {
     return (
         <>
             <section id="environment" className="absolute inset-0">
-                <img
-                    alt="Left Fire"
-                    src="/fire.gif"
-                    className="pointer-events-none absolute top-[10%] left-[6%] h-[12%] w-auto drop-shadow-2xl drop-shadow-red-500 select-none"
-                    draggable={false}
-                />
-                <img
-                    alt="Right Fire"
-                    src="/fire.gif"
-                    className="pointer-events-none absolute top-[10%] right-[7%] h-[12%] w-auto drop-shadow-2xl drop-shadow-red-500 select-none"
-                    draggable={false}
-                />
                 <div className="translate absolute bottom-[6%] left-[50%] h-[10%] w-2 -translate-x-1/2 border bg-white opacity-60" />
             </section>
             <section id="cameras" className="absolute flex w-full justify-center gap-6 p-8">
