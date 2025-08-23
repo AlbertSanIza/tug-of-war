@@ -1,12 +1,15 @@
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { REGEXP_ONLY_CHARS } from 'input-otp'
+import Peer, { type DataConnection } from 'peerjs'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const Route = createFileRoute('/gladiator')({
     component: RouteComponent
@@ -14,21 +17,79 @@ export const Route = createFileRoute('/gladiator')({
 
 function RouteComponent() {
     const router = useRouter()
+    const [dialogOpen, setDialogOpen] = useState(true)
+    const connRef = useRef<DataConnection | null>(null)
+    const videoRef = useRef<HTMLVideoElement | null>(null)
 
     const form = useForm({
         defaultValues: {
-            name: '',
+            name: localStorage.getItem('gladiator-name') || '',
             arenaId: ''
         },
         onSubmit: ({ value }) => {
             localStorage.setItem('gladiator-name', value.name)
-            console.log('Submitted:', value)
+            connect(value.arenaId, value.name)
         }
     })
 
+    const connect = useCallback(async (arenaId: string, name: string) => {
+        try {
+            const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            if (videoRef.current) {
+                videoRef.current.srcObject = localStream
+                videoRef.current.muted = true
+                await videoRef.current.play().catch(() => {})
+                setDialogOpen(false)
+            }
+            const peer = new Peer()
+            peer.on('open', () => {
+                peer.call(`tug-of-war-arena-${arenaId}`, localStream)
+                const conn = peer.connect(`tug-of-war-arena-${arenaId}`)
+                connRef.current = conn
+                conn.on('open', () => {
+                    conn.send({ type: 'intro', name })
+                })
+                conn.on('error', () => {
+                    connRef.current = null
+                })
+                conn.on('close', () => {
+                    connRef.current = null
+                })
+            })
+            peer.on('disconnected', () => setDialogOpen(true))
+            peer.on('error', () => setDialogOpen(true))
+        } catch {
+            setDialogOpen(true)
+        }
+    }, [])
+
+    useEffect(() => {
+        function onKey(event: KeyboardEvent) {
+            if (event.code === 'Space') {
+                event.preventDefault()
+                connRef.current?.send({ type: 'pull' })
+            }
+        }
+        window.addEventListener('keydown', onKey)
+        return () => window.removeEventListener('keydown', onKey)
+    }, [])
+
     return (
         <>
-            <Dialog open>
+            <section className="absolute inset-0 flex items-center justify-center p-6">
+                <div className="overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
+                    <video ref={videoRef} className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })} playsInline />
+                </div>
+            </section>
+            {!dialogOpen && (
+                <section className="absolute bottom-6 flex w-full items-center justify-center gap-3">
+                    <Button onClick={() => connRef.current?.send({ type: 'ready' })}>Ready</Button>
+                    <Button variant="secondary" onClick={() => connRef.current?.send({ type: 'pull' })}>
+                        Pull (Space)
+                    </Button>
+                </section>
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent
                     showCloseButton={false}
                     onEscapeKeyDown={(event) => event.preventDefault()}
