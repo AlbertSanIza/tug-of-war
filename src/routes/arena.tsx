@@ -5,6 +5,7 @@ export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
+type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
 function RouteComponent() {
     const [ropePos, setRopePos] = useState(0)
     return (
@@ -52,6 +53,9 @@ function RouteComponent() {
                     <Link to="/">Back</Link>
                 </Button>
             </section>
+            {gameState === 'countdown' && countdown !== null && countdown > 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-[2600%] text-orange-100 text-shadow-lg/30">{countdown}</div>
+            )}
         </>
     )
 }
