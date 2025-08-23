@@ -11,7 +11,7 @@ export const Route = createFileRoute('/arena')({
     component: RouteComponent
 })
 
-export const WIN_THRESHOLD = 5
+export const WIN_THRESHOLD = 10
 
 type ArenaConnectionState = 'idle' | 'listening' | 'error'
 type ArenaGameState = 'idle' | 'countdown' | 'running' | 'finished'
@@ -238,14 +238,14 @@ function RouteComponent() {
                         <div
                             id="rope"
                             className="absolute bottom-[34%] h-[2%] border-2 border-amber-500 bg-[url(/rope.png)] transition-all"
-                            style={{ left: `${18 + ropePos * 3}%`, right: `${18 + -ropePos * 3}%` }}
+                            style={{ left: `${18 + ropePos * 8}%`, right: `${18 + -ropePos * 8}%` }}
                         />
                         <img
                             alt="Red Center Flag"
                             src="/flag.png"
                             className="pointer-events-none absolute bottom-[18%] left-1/2 h-[26%] w-auto -translate-x-1/2 transition-all select-none"
                             draggable={false}
-                            style={{ left: `${50 + ropePos * 3}%` }}
+                            style={{ left: `${50 + ropePos * 8}%` }}
                         />
                     </>
                 )}
@@ -253,7 +253,7 @@ function RouteComponent() {
                     alt="Left warrior"
                     src="/warrior-left.png"
                     draggable={false}
-                    style={{ left: `${8 + ropePos * 3}%` }}
+                    style={{ left: `${8 + ropePos * 8}%` }}
                     className={cn(
                         'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-red-500 transition-all select-none',
                         rightWins && 'bottom-[2%]! left-[2%]! h-[10%] animate-spin',
@@ -264,7 +264,7 @@ function RouteComponent() {
                     alt="Right warrior"
                     src="/warrior-right.png"
                     draggable={false}
-                    style={{ right: `${8 + -ropePos * 3}%` }}
+                    style={{ right: `${8 + -ropePos * 8}%` }}
                     className={cn(
                         'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-500 transition-all select-none',
                         leftWins && 'right-[2%]! bottom-[2%]! h-[10%] animate-spin',
