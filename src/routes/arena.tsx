@@ -215,7 +215,7 @@ function RouteComponent() {
                 <div
                     className={cn(
                         'text-center transition-all',
-                        !readyPeerIds.includes(leftRightPeers.left) && 'opacity-40',
+                        !readyPeerIds.includes(leftRightPeers.right) && 'opacity-40',
                         leftWins && 'hidden',
                         rightWins && 'text-left'
                     )}
