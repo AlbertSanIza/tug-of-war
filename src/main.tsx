@@ -1,4 +1,4 @@
-import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { createHashHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -7,7 +7,8 @@ import { Toaster } from '@/components/ui/sonner'
 import '@/index.css'
 import { routeTree } from '@/lib/route-tree.gen'
 
-const router = createRouter({ routeTree })
+const hashHistory = createHashHistory()
+const router = createRouter({ routeTree, history: hashHistory })
 
 declare module '@tanstack/react-router' {
     interface Register {
