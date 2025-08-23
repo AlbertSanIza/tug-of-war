@@ -30,6 +30,22 @@ function RouteComponent() {
                 />
             </section>
             <section id="arena" className="absolute inset-0 overflow-hidden">
+                {gameState !== 'finished' && (
+                    <>
+                        <div
+                            id="rope"
+                            className="absolute bottom-[34%] h-[2%] border-3 border-amber-400 bg-amber-600 transition-all"
+                            style={{ left: `${18 + ropePos * 3}%`, right: `${18 + -ropePos * 3}%` }}
+                        />
+                        <img
+                            alt="Red Center Flag"
+                            src="/flag.png"
+                            className="pointer-events-none absolute bottom-[18%] left-1/2 h-[26%] w-auto -translate-x-1/2 transition-all select-none"
+                            draggable={false}
+                            style={{ left: `${50 + ropePos * 3}%` }}
+                        />
+                    </>
+                )}
                 <img
                     alt="Left warrior"
                     src="/warrior-left.png"
