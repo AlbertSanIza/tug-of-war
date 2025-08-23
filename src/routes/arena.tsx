@@ -174,7 +174,7 @@ function RouteComponent() {
                             if (updated.length >= 2 && gameStateRef.current === 'idle') {
                                 setGameState('countdown')
                                 setRopePos(0)
-                                setCountdown(3)
+                                setCountdown(6)
                             }
                             return updated
                         })
