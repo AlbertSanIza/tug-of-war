@@ -4,13 +4,13 @@ import { REGEXP_ONLY_CHARS } from 'input-otp'
 import Peer, { type DataConnection } from 'peerjs'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { CameraRouteComponent } from '@/components/camera'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { CameraRouteComponent } from '../components/camera'
 
 export const Route = createFileRoute('/gladiator')({
     component: RouteComponent
@@ -18,16 +18,12 @@ export const Route = createFileRoute('/gladiator')({
 
 function RouteComponent() {
     const router = useRouter()
-
     const [dialogOpen, setDialogOpen] = useState(true)
     const connRef = useRef<DataConnection | null>(null)
     const videoRef = useRef<HTMLVideoElement | null>(null)
 
     const form = useForm({
-        defaultValues: {
-            name: localStorage.getItem('gladiator-name') || '',
-            arenaId: ''
-        },
+        defaultValues: { name: localStorage.getItem('gladiator-name') || '', arenaId: '' },
         onSubmit: ({ value }) => {
             localStorage.setItem('gladiator-name', value.name)
             connect(value.arenaId, value.name)
@@ -48,9 +44,7 @@ function RouteComponent() {
                 peer.call(`tug-of-war-arena-${arenaId}`, localStream)
                 const conn = peer.connect(`tug-of-war-arena-${arenaId}`)
                 connRef.current = conn
-                conn.on('open', () => {
-                    conn.send({ type: 'intro', name })
-                })
+                conn.on('open', () => conn.send({ type: 'intro', name }))
                 conn.on('error', () => {
                     connRef.current = null
                 })
@@ -133,7 +127,6 @@ function RouteComponent() {
                                     </div>
                                 )}
                             />
-
                             <form.Subscribe
                                 selector={(state) => state.values.name}
                                 children={(name) => (
@@ -165,7 +158,6 @@ function RouteComponent() {
                                 )}
                             />
                         </div>
-
                         <form.Subscribe
                             selector={(state) => [state.canSubmit, state.isSubmitting]}
                             children={([canSubmit, isSubmitting]) => (
