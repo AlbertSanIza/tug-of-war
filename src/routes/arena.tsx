@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import confetti from 'canvas-confetti'
+import { Loader2Icon } from 'lucide-react'
 import Peer, { type DataConnection } from 'peerjs'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -37,36 +38,90 @@ function RouteComponent() {
     const dataConnsRef = useRef<Record<string, DataConnection>>({})
     const [gameState, setGameState] = useState<ArenaGameState>('idle')
 
+    // Define stream management functions outside useEffect so they can be used in other effects
+    const removeStream = useCallback((peerId: string) => {
+        console.log(`Removing stream from peer ${peerId}`)
+        delete remoteStreamsRef.current[peerId]
+
+        const allIds = Object.keys(remoteStreamsRef.current)
+
+        // Clear and reassign video elements
+        if (videoLeftRef.current) {
+            const leftId = allIds[0]
+            if (leftId && remoteStreamsRef.current[leftId]) {
+                videoLeftRef.current.srcObject = remoteStreamsRef.current[leftId]
+            } else {
+                videoLeftRef.current.srcObject = null
+            }
+        }
+
+        if (videoRightRef.current) {
+            const rightId = allIds[1]
+            if (rightId && remoteStreamsRef.current[rightId]) {
+                videoRightRef.current.srcObject = remoteStreamsRef.current[rightId]
+            } else {
+                videoRightRef.current.srcObject = null
+            }
+        }
+
+        setGladiatorIds(allIds)
+    }, [])
+
+    const attachStreamToSlot = useCallback(async (peerId: string, stream: MediaStream) => {
+        // Validate the stream
+        if (!stream || !stream.active || stream.getVideoTracks().length === 0) {
+            console.warn(`Invalid stream from peer ${peerId}:`, stream)
+            return
+        }
+
+        remoteStreamsRef.current[peerId] = stream
+
+        // Wait a bit for the stream to be fully ready
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        const index = (Object.keys(remoteStreamsRef.current).indexOf(peerId) % 2) as 0 | 1
+        const targetRef = index === 0 ? videoLeftRef : videoRightRef
+
+        if (targetRef.current) {
+            try {
+                // Clear any existing stream first
+                if (targetRef.current.srcObject) {
+                    targetRef.current.srcObject = null
+                }
+                // Set the new stream
+                targetRef.current.srcObject = stream
+                // Ensure the video element is ready
+                if (targetRef.current.readyState === 0) {
+                    await new Promise<void>((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Video ready timeout')), 5000)
+                        targetRef.current!.addEventListener(
+                            'loadedmetadata',
+                            () => {
+                                clearTimeout(timeout)
+                                resolve()
+                            },
+                            { once: true }
+                        )
+                    })
+                }
+                // Play the video
+                await targetRef.current.play()
+                console.log(`Successfully attached stream from ${peerId} to ${index === 0 ? 'left' : 'right'} video`)
+            } catch (error) {
+                console.error(`Failed to attach stream from ${peerId}:`, error)
+                // Remove the failed stream
+                delete remoteStreamsRef.current[peerId]
+                return
+            }
+        }
+        setGladiatorIds(Object.keys(remoteStreamsRef.current))
+    }, [])
+
     useEffect(() => {
         if (peerLoadedRef.current) {
             return
         }
         peerLoadedRef.current = true
-
-        async function attachStreamToSlot(peerId: string, stream: MediaStream) {
-            remoteStreamsRef.current[peerId] = stream
-            const index = (Object.keys(remoteStreamsRef.current).indexOf(peerId) % 2) as 0 | 1
-            const targetRef = index === 0 ? videoLeftRef : videoRightRef
-            if (targetRef.current) {
-                targetRef.current.srcObject = stream
-                await targetRef.current.play().catch(() => {})
-            }
-            setGladiatorIds(Object.keys(remoteStreamsRef.current))
-        }
-
-        function removeStream(peerId: string) {
-            delete remoteStreamsRef.current[peerId]
-            const allIds = Object.keys(remoteStreamsRef.current)
-            if (videoLeftRef.current) {
-                const leftId = allIds[0]
-                videoLeftRef.current.srcObject = leftId ? remoteStreamsRef.current[leftId] : null
-            }
-            if (videoRightRef.current) {
-                const rightId = allIds[1]
-                videoRightRef.current.srcObject = rightId ? remoteStreamsRef.current[rightId] : null
-            }
-            setGladiatorIds(allIds)
-        }
 
         const peer = new Peer(`tug-of-war-arena-${generateId()}`)
         peer.on('open', (id) => {
@@ -74,10 +129,27 @@ function RouteComponent() {
             setStatus('listening')
         })
         peer.on('call', (call) => {
+            // Answer the call with no local stream
             call.answer(undefined)
-            call.on('stream', (remoteStream) => attachStreamToSlot(call.peer, remoteStream))
-            call.on('close', () => removeStream(call.peer))
-            call.on('error', () => removeStream(call.peer))
+            // Handle the incoming stream
+            call.on('stream', (remoteStream) => {
+                console.log(`Received stream from peer ${call.peer}:`, remoteStream)
+                if (remoteStream && remoteStream.active) {
+                    attachStreamToSlot(call.peer, remoteStream)
+                } else {
+                    console.warn(`Invalid stream received from peer ${call.peer}`)
+                }
+            })
+            // Handle call close
+            call.on('close', () => {
+                console.log(`Call closed with peer ${call.peer}`)
+                removeStream(call.peer)
+            })
+            // Handle call errors
+            call.on('error', (error) => {
+                console.error(`Call error with peer ${call.peer}:`, error)
+                removeStream(call.peer)
+            })
         })
         peer.on('connection', (conn) => {
             dataConnsRef.current[conn.peer] = conn
@@ -145,6 +217,45 @@ function RouteComponent() {
     useEffect(() => {
         gameStateRef.current = gameState
     }, [gameState])
+
+    // Ensure video elements are properly initialized
+    useEffect(() => {
+        const videoElements = [videoLeftRef.current, videoRightRef.current]
+        videoElements.forEach((video, index) => {
+            if (video) {
+                video.muted = true
+                video.playsInline = true
+                video.autoplay = true
+                console.log(`Initialized video element ${index === 0 ? 'left' : 'right'}`)
+            }
+        })
+    }, [])
+
+    // Debug logging for stream states
+    useEffect(() => {
+        console.log('Current streams:', Object.keys(remoteStreamsRef.current))
+        console.log('Current gladiator IDs:', gladiatorIds)
+    }, [gladiatorIds])
+
+    // Periodic stream health check
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const activeStreams = Object.entries(remoteStreamsRef.current).filter(([peerId, stream]) => {
+                const isActive = stream && stream.active && stream.getVideoTracks().length > 0
+                if (!isActive) {
+                    console.warn(`Stream from ${peerId} is no longer active, removing`)
+                    removeStream(peerId)
+                }
+                return isActive
+            })
+            // Update gladiator IDs if streams were removed
+            if (activeStreams.length !== Object.keys(remoteStreamsRef.current).length) {
+                setGladiatorIds(activeStreams.map(([peerId]) => peerId))
+            }
+        }, 5000) // Check every 5 seconds
+
+        return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
         if (gameState !== 'countdown' || countdown === null) {
