@@ -34,16 +34,13 @@ function RouteComponent() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const [ready, setReady] = useState(false)
     const holisticRef = useRef<Holistic | null>(null)
-    // Always use selfie mode
     const selfieMode = true
     const [effect, setEffect] = useState<'background' | 'mask'>('background')
     const [selectedSide, setSelectedSide] = useState<'left' | 'right' | 'both'>('both')
     const [reps, setReps] = useState(0)
     const repCountRef = useRef(0)
-    const phaseRef = useRef<'up' | 'down' | 'unknown'>('unknown')
-    const lastRepTimestampRef = useRef<number>(0)
-    const bottomHoldStartRef = useRef<number | null>(null)
-    const angleHistoryRef = useRef<number[]>([])
+    const phaseRef = useRef<'up' | 'down'>('up')
+    const depthReachedRef = useRef(false)
 
     useEffect(() => {
         testSupport(supported)
@@ -95,11 +92,8 @@ function RouteComponent() {
                 right: { shoulder: 12, elbow: 14, wrist: 16 }
             } as const
 
-            // Hysteresis thresholds and timing
-            const UP_THRESHOLD_DEG = 160 // arms extended
-            const DOWN_THRESHOLD_DEG = 95 // arms bent
-            const MIN_REP_INTERVAL_MS = 600
-            const MIN_BOTTOM_HOLD_MS = 200
+            const EXTENDED_THRESHOLD = 160
+            const DEPTH_THRESHOLD = 90
 
             const fallbackDrawPoints = (points?: NormalizedLandmarkList | null, color = 'red') => {
                 if (!points) return
@@ -137,7 +131,7 @@ function RouteComponent() {
                     ctx.drawImage(results.image as HTMLCanvasElement | HTMLVideoElement | HTMLImageElement, 0, 0, canvasEl!.width, canvasEl!.height)
                 }
 
-                const hasAny = !!(results.poseLandmarks || results.leftHandLandmarks || results.rightHandLandmarks || results.faceLandmarks)
+                const hasAny = !!(results.poseLandmarks || results.leftHandLandmarks || results.rightHandLandmarks)
                 if (hasAny) lastDetectionTime = performance.now()
 
                 if (results.poseLandmarks) {
@@ -150,7 +144,7 @@ function RouteComponent() {
                     } catch {
                         fallbackDrawPoints(results.poseLandmarks, 'orange')
                     }
-                    // Push-up counter logic
+                    // Simplified push-up counter logic
                     try {
                         const side = getSelectedSide()
                         const lm = results.poseLandmarks
@@ -183,61 +177,32 @@ function RouteComponent() {
                         }
 
                         if (primaryAngle != null && displayElbow) {
-                            // Smoothing (median of last 5)
-                            const h = angleHistoryRef.current
-                            h.push(primaryAngle)
-                            if (h.length > 5) h.shift()
-                            const sorted = [...h].sort((a, b) => a - b)
-                            const median = sorted[Math.floor(sorted.length / 2)]
-                            const angle = median
+                            const angle = primaryAngle
 
                             // Draw angle near the chosen elbow
                             const ex = displayElbow.x * canvasEl!.width
                             const ey = displayElbow.y * canvasEl!.height
                             ctx.fillStyle = 'rgba(0,0,0,0.6)'
-                            ctx.fillRect(ex - 28, ey - 24, 56, 18)
+                            ctx.fillRect(ex - 30, ey - 26, 60, 20)
                             ctx.fillStyle = 'yellow'
                             ctx.font = '12px sans-serif'
                             ctx.textAlign = 'center'
-                            ctx.fillText(`${Math.round(angle)}°`, ex, ey - 10)
+                            ctx.fillText(`${Math.round(angle)}°`, ex, ey - 11)
 
-                            // Plank-quality gate (shoulder-hip-knee straight)
-                            const hipIdx = side === 'left' ? 23 : side === 'right' ? 24 : 23 // use left by default for both
-                            const kneeIdx = side === 'left' ? 25 : side === 'right' ? 26 : 25
-                            const hip = lm[hipIdx]
-                            const shoulderForHip = lm[hipIdx === 23 ? 11 : 12]
-                            const knee = lm[kneeIdx]
-                            let plankOK = true
-                            if (hip && shoulderForHip && knee) {
-                                const hipAngle = angleAt(shoulderForHip, hip, knee)
-                                plankOK = hipAngle >= 165
-                            }
-
-                            // State machine with hysteresis and timing
-                            const now = performance.now()
-                            const prevPhase = phaseRef.current
-                            let nextPhase = prevPhase
-                            if (angle >= UP_THRESHOLD_DEG) nextPhase = 'up'
-                            else if (angle <= DOWN_THRESHOLD_DEG) nextPhase = 'down'
-
-                            // Track bottom hold duration
-                            if (nextPhase === 'down') {
-                                if (bottomHoldStartRef.current == null) bottomHoldStartRef.current = now
-                            } else {
-                                bottomHoldStartRef.current = null
-                            }
-
-                            const heldBottomLongEnough = bottomHoldStartRef.current != null && now - bottomHoldStartRef.current >= MIN_BOTTOM_HOLD_MS
-
-                            // Count on transition down -> up if gated
-                            if (prevPhase === 'down' && nextPhase === 'up') {
-                                if (heldBottomLongEnough && plankOK && now - lastRepTimestampRef.current >= MIN_REP_INTERVAL_MS) {
+                            // Hips present? (either hip landmark visible)
+                            const hipsInFrame = (lm[23]?.visibility ?? 0) > 0.4 || (lm[24]?.visibility ?? 0) > 0.4
+                            if (hipsInFrame) {
+                                if (angle <= DEPTH_THRESHOLD) {
+                                    depthReachedRef.current = true
+                                    phaseRef.current = 'down'
+                                }
+                                if (depthReachedRef.current && angle >= EXTENDED_THRESHOLD && phaseRef.current === 'down') {
                                     repCountRef.current += 1
-                                    lastRepTimestampRef.current = now
                                     setReps(repCountRef.current)
+                                    depthReachedRef.current = false
+                                    phaseRef.current = 'up'
                                 }
                             }
-                            phaseRef.current = nextPhase
                         }
                     } catch {
                         // ignore counter errors
@@ -272,13 +237,15 @@ function RouteComponent() {
                     ctx.fillText('No landmarks detected. Ensure good lighting and full body in frame.', 10, 20)
                 }
 
-                // Overlay rep counter
-                ctx.fillStyle = 'rgba(0,0,0,0.5)'
-                ctx.fillRect(8, 28, 120, 28)
-                ctx.fillStyle = 'lime'
-                ctx.font = '18px sans-serif'
+                // Overlay panel
+                const panelW = 140
+                const panelH = 40
+                ctx.fillStyle = 'rgba(0,0,0,0.45)'
+                ctx.fillRect(8, 28, panelW, panelH)
                 ctx.textAlign = 'left'
-                ctx.fillText(`Reps: ${repCountRef.current}`, 14, 48)
+                ctx.font = '18px sans-serif'
+                ctx.fillStyle = '#4ade80'
+                ctx.fillText(`Reps: ${repCountRef.current}`, 16, 52)
 
                 ctx.restore()
             })
@@ -312,7 +279,9 @@ function RouteComponent() {
         return () => {
             cancelled = true
         }
-    }, [effect, selectedSide]) // selfieMode removed from deps
+        // We intentionally exclude live/form feedback states to avoid reinitializing MediaPipe every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [effect, selectedSide]) // selfieMode constant
 
     return (
         <div className="flex flex-col gap-4 p-4">
@@ -345,10 +314,8 @@ function RouteComponent() {
                             onClick={() => {
                                 repCountRef.current = 0
                                 setReps(0)
-                                phaseRef.current = 'unknown'
-                                lastRepTimestampRef.current = 0
-                                bottomHoldStartRef.current = null
-                                angleHistoryRef.current = []
+                                phaseRef.current = 'up'
+                                depthReachedRef.current = false
                             }}
                         >
                             Reset reps
@@ -356,9 +323,9 @@ function RouteComponent() {
                     </div>
                     {!ready && <p className="text-sm text-muted-foreground">Initializing...</p>}
                     {ready && (
-                        <p className="text-sm opacity-80">
+                        <div className="flex flex-col opacity-80 text-sm">
                             Reps: <span className="font-semibold">{reps}</span>
-                        </p>
+                        </div>
                     )}
                 </div>
                 <div className="relative flex h-full w-full items-center justify-center">
