@@ -304,8 +304,8 @@ function RouteComponent() {
                         </p>
                     )}
                 </div>
-                <div className="relative h-full w-full">
-                    <canvas ref={canvasRef} className="rounded border h-full w-full" />
+                <div className="relative h-full w-full flex justify-center items-center">
+                    <canvas ref={canvasRef} className="rounded border  h-2xl w-2xl" />
                     <video ref={videoRef} autoPlay muted playsInline className="selfie opacity-0 hidden" />
                 </div>
             </div>
