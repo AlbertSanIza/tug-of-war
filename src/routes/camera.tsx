@@ -265,7 +265,7 @@ function RouteComponent() {
                 ctx.fillStyle = 'rgba(0,0,0,0.45)'
                 ctx.fillRect(8, 28, panelW, panelH)
                 ctx.textAlign = 'left'
-                ctx.font = '18px sans-serif'
+                ctx.font = '32px sans-serif'
                 ctx.fillStyle = '#4ade80'
                 ctx.fillText(`Reps: ${repCountRef.current}`, 16, 52)
                 if (torsoAngleRef.current != null) {
