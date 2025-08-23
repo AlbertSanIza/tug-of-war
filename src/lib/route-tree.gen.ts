@@ -10,18 +10,12 @@
 
 import { Route as rootRouteImport } from './../routes/__root'
 import { Route as GladiatorRouteImport } from './../routes/gladiator'
-import { Route as CameraRouteImport } from './../routes/camera'
 import { Route as ArenaRouteImport } from './../routes/arena'
 import { Route as IndexRouteImport } from './../routes/index'
 
 const GladiatorRoute = GladiatorRouteImport.update({
   id: '/gladiator',
   path: '/gladiator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CameraRoute = CameraRouteImport.update({
-  id: '/camera',
-  path: '/camera',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArenaRoute = ArenaRouteImport.update({
@@ -38,34 +32,30 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
-  '/camera': typeof CameraRoute
   '/gladiator': typeof GladiatorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
-  '/camera': typeof CameraRoute
   '/gladiator': typeof GladiatorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/arena': typeof ArenaRoute
-  '/camera': typeof CameraRoute
   '/gladiator': typeof GladiatorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/arena' | '/camera' | '/gladiator'
+  fullPaths: '/' | '/arena' | '/gladiator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/arena' | '/camera' | '/gladiator'
-  id: '__root__' | '/' | '/arena' | '/camera' | '/gladiator'
+  to: '/' | '/arena' | '/gladiator'
+  id: '__root__' | '/' | '/arena' | '/gladiator'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArenaRoute: typeof ArenaRoute
-  CameraRoute: typeof CameraRoute
   GladiatorRoute: typeof GladiatorRoute
 }
 
@@ -76,13 +66,6 @@ declare module '@tanstack/react-router' {
       path: '/gladiator'
       fullPath: '/gladiator'
       preLoaderRoute: typeof GladiatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/camera': {
-      id: '/camera'
-      path: '/camera'
-      fullPath: '/camera'
-      preLoaderRoute: typeof CameraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arena': {
@@ -105,7 +88,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArenaRoute: ArenaRoute,
-  CameraRoute: CameraRoute,
   GladiatorRoute: GladiatorRoute,
 }
 export const routeTree = rootRouteImport

@@ -2,13 +2,8 @@ import { cn } from '@/lib/utils'
 import '@mediapipe/camera_utils'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import { HAND_CONNECTIONS, Holistic, POSE_CONNECTIONS, type LandmarkConnectionArray, type NormalizedLandmarkList, type Results } from '@mediapipe/holistic'
-import { createFileRoute } from '@tanstack/react-router'
 import DeviceDetector from 'device-detector-js'
 import { useEffect, useRef, useState } from 'react'
-
-export const Route = createFileRoute('/camera')({
-    component: CameraRouteComponent
-})
 
 interface SupportedDeviceRule {
     client?: string
@@ -30,7 +25,7 @@ function testSupport(rules: SupportedDeviceRule[]) {
     }
 }
 
-export function CameraRouteComponent({ className }: { className?: string }) {
+export function CameraRouteComponent({ className, onCount }: { className?: string; onCount: (count: number) => void }) {
     const videoRef = useRef<HTMLVideoElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const [ready, setReady] = useState(false)
@@ -215,6 +210,7 @@ export function CameraRouteComponent({ className }: { className?: string }) {
                                 }
                                 if (depthReachedRef.current && angle >= EXTENDED_THRESHOLD && phaseRef.current === 'down') {
                                     repCountRef.current += 1
+                                    onCount(repCountRef.current)
                                     depthReachedRef.current = false
                                     phaseRef.current = 'up'
                                 }

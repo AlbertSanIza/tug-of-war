@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { CameraRouteComponent } from './camera'
+import { CameraRouteComponent } from '../components/camera'
 
 export const Route = createFileRoute('/gladiator')({
     component: RouteComponent
@@ -18,6 +18,7 @@ export const Route = createFileRoute('/gladiator')({
 
 function RouteComponent() {
     const router = useRouter()
+
     const [dialogOpen, setDialogOpen] = useState(true)
     const connRef = useRef<DataConnection | null>(null)
     const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -79,7 +80,10 @@ function RouteComponent() {
         <>
             <section className="absolute inset-0 flex items-center justify-center p-6">
                 <div className="overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
-                    <CameraRouteComponent className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })} />
+                    <CameraRouteComponent
+                        className={cn('size-full h-1/2 object-contain', { hidden: dialogOpen })}
+                        onCount={(count) => connRef.current?.send({ type: 'pull', count })}
+                    />
                     <video ref={videoRef} className={cn('hidden size-full h-1/2 object-contain', { hidden: dialogOpen })} playsInline />
                 </div>
             </section>
