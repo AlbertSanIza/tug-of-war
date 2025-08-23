@@ -266,7 +266,7 @@ function RouteComponent() {
                     draggable={false}
                     style={{ right: `${8 + -ropePos * 3}%` }}
                     className={cn(
-                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-800 transition-all select-none',
+                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-500 transition-all select-none',
                         leftWins && 'right-[2%]! bottom-[2%]! h-[10%] animate-spin',
                         rightWins && 'right-[2%]! h-[56%]'
                     )}
