@@ -15,97 +15,99 @@ import { Route as ArenaRouteImport } from './../routes/arena'
 import { Route as IndexRouteImport } from './../routes/index'
 
 const GladiatorRoute = GladiatorRouteImport.update({
-    id: '/gladiator',
-    path: '/gladiator',
-    getParentRoute: () => rootRouteImport
+  id: '/gladiator',
+  path: '/gladiator',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CameraRoute = CameraRouteImport.update({
-    id: '/camera',
-    path: '/camera',
-    getParentRoute: () => rootRouteImport
+  id: '/camera',
+  path: '/camera',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ArenaRoute = ArenaRouteImport.update({
-    id: '/arena',
-    path: '/arena',
-    getParentRoute: () => rootRouteImport
+  id: '/arena',
+  path: '/arena',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => rootRouteImport
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-    '/': typeof IndexRoute
-    '/arena': typeof ArenaRoute
-    '/camera': typeof CameraRoute
-    '/gladiator': typeof GladiatorRoute
+  '/': typeof IndexRoute
+  '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
+  '/gladiator': typeof GladiatorRoute
 }
 export interface FileRoutesByTo {
-    '/': typeof IndexRoute
-    '/arena': typeof ArenaRoute
-    '/camera': typeof CameraRoute
-    '/gladiator': typeof GladiatorRoute
+  '/': typeof IndexRoute
+  '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
+  '/gladiator': typeof GladiatorRoute
 }
 export interface FileRoutesById {
-    __root__: typeof rootRouteImport
-    '/': typeof IndexRoute
-    '/arena': typeof ArenaRoute
-    '/camera': typeof CameraRoute
-    '/gladiator': typeof GladiatorRoute
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/arena': typeof ArenaRoute
+  '/camera': typeof CameraRoute
+  '/gladiator': typeof GladiatorRoute
 }
 export interface FileRouteTypes {
-    fileRoutesByFullPath: FileRoutesByFullPath
-    fullPaths: '/' | '/arena' | '/camera' | '/gladiator'
-    fileRoutesByTo: FileRoutesByTo
-    to: '/' | '/arena' | '/camera' | '/gladiator'
-    id: '__root__' | '/' | '/arena' | '/camera' | '/gladiator'
-    fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/arena' | '/camera' | '/gladiator'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/arena' | '/camera' | '/gladiator'
+  id: '__root__' | '/' | '/arena' | '/camera' | '/gladiator'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-    IndexRoute: typeof IndexRoute
-    ArenaRoute: typeof ArenaRoute
-    CameraRoute: typeof CameraRoute
-    GladiatorRoute: typeof GladiatorRoute
+  IndexRoute: typeof IndexRoute
+  ArenaRoute: typeof ArenaRoute
+  CameraRoute: typeof CameraRoute
+  GladiatorRoute: typeof GladiatorRoute
 }
 
 declare module '@tanstack/react-router' {
-    interface FileRoutesByPath {
-        '/gladiator': {
-            id: '/gladiator'
-            path: '/gladiator'
-            fullPath: '/gladiator'
-            preLoaderRoute: typeof GladiatorRouteImport
-            parentRoute: typeof rootRouteImport
-        }
-        '/camera': {
-            id: '/camera'
-            path: '/camera'
-            fullPath: '/camera'
-            preLoaderRoute: typeof CameraRouteImport
-            parentRoute: typeof rootRouteImport
-        }
-        '/arena': {
-            id: '/arena'
-            path: '/arena'
-            fullPath: '/arena'
-            preLoaderRoute: typeof ArenaRouteImport
-            parentRoute: typeof rootRouteImport
-        }
-        '/': {
-            id: '/'
-            path: '/'
-            fullPath: '/'
-            preLoaderRoute: typeof IndexRouteImport
-            parentRoute: typeof rootRouteImport
-        }
+  interface FileRoutesByPath {
+    '/gladiator': {
+      id: '/gladiator'
+      path: '/gladiator'
+      fullPath: '/gladiator'
+      preLoaderRoute: typeof GladiatorRouteImport
+      parentRoute: typeof rootRouteImport
     }
+    '/camera': {
+      id: '/camera'
+      path: '/camera'
+      fullPath: '/camera'
+      preLoaderRoute: typeof CameraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arena': {
+      id: '/arena'
+      path: '/arena'
+      fullPath: '/arena'
+      preLoaderRoute: typeof ArenaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-    IndexRoute: IndexRoute,
-    ArenaRoute: ArenaRoute,
-    CameraRoute: CameraRoute,
-    GladiatorRoute: GladiatorRoute
+  IndexRoute: IndexRoute,
+  ArenaRoute: ArenaRoute,
+  CameraRoute: CameraRoute,
+  GladiatorRoute: GladiatorRoute,
 }
-export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
