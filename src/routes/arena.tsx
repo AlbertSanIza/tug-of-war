@@ -211,7 +211,7 @@ function RouteComponent() {
                     <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
                         <video ref={videoLeftRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', leftWins && 'max-h-140')} playsInline />
                     </div>
-                    <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', leftWins && 'animate-pulse text-8xl font-black')}>
+                    <span className={cn('text-3xl font-semibold text-orange-200 uppercase text-shadow-lg/30', leftWins && 'animate-pulse text-8xl font-black')}>
                         {peerNames[leftRightPeers.left]} {leftWins && 'WINS!'}
                     </span>
                 </div>
@@ -227,7 +227,7 @@ function RouteComponent() {
                     <div className="size-fit overflow-hidden rounded-4xl border-4 backdrop-blur-sm">
                         <video ref={videoRightRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', rightWins && 'max-h-140')} playsInline />
                     </div>
-                    <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', rightWins && 'animate-pulse text-8xl font-bold')}>
+                    <span className={cn('text-3xl font-semibold text-orange-200 uppercase text-shadow-lg/30', rightWins && 'animate-pulse text-8xl font-bold')}>
                         {peerNames[leftRightPeers.right]} {rightWins && 'WINS!'}
                     </span>
                 </div>
