@@ -29,6 +29,7 @@ function testSupport(rules: SupportedDeviceRule[]) {
 export function CameraRouteComponent({ className, onCount }: { className?: string; onCount: (count: number) => void }) {
     const videoRef = useRef<HTMLVideoElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
+    const [pushUpCount, setPushUpCount] = useState(0)
     const [ready, setReady] = useState(false)
     const holisticRef = useRef<Holistic | null>(null)
     const selfieMode = true
@@ -212,6 +213,7 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
                                 if (depthReachedRef.current && angle >= EXTENDED_THRESHOLD && phaseRef.current === 'down') {
                                     repCountRef.current += 1
                                     onCount(repCountRef.current)
+                                    setPushUpCount(repCountRef.current)
                                     depthReachedRef.current = false
                                     phaseRef.current = 'up'
                                 }
@@ -297,7 +299,7 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
             <div className="relative flex h-full w-full items-center justify-center">
                 <canvas ref={canvasRef} className="rounded border" />
                 <video ref={videoRef} autoPlay muted playsInline className="selfie hidden opacity-0" />
-                <Button className="absolute top-7 left-2 flex h-15 w-45 text-xl">Reps: {repCountRef.current}</Button>
+                <Button className="absolute top-7 left-2 flex h-15 w-45 text-xl">Reps: {pushUpCount}</Button>
             </div>
         </div>
     )
