@@ -41,6 +41,7 @@ function RouteComponent() {
     const repCountRef = useRef(0)
     const phaseRef = useRef<'up' | 'down'>('up')
     const depthReachedRef = useRef(false)
+    const torsoAngleRef = useRef<number | null>(null)
 
     useEffect(() => {
         testSupport(supported)
@@ -189,9 +190,35 @@ function RouteComponent() {
                             ctx.textAlign = 'center'
                             ctx.fillText(`${Math.round(angle)}°`, ex, ey - 11)
 
+                            // Torso angle (average of left & right shoulder->hip vectors relative to vertical)
+                            const ls = lm[11]
+                            const rs = lm[12]
+                            const lh = lm[23]
+                            const rh = lm[24]
+                            const torsoAngles: number[] = []
+                            interface Lm {
+                                x: number
+                                y: number
+                            }
+                            const calcTorso = (shoulder: Lm | undefined, hip: Lm | undefined) => {
+                                if (!shoulder || !hip) return
+                                // Vector shoulder -> hip
+                                const vx = hip.x - shoulder.x
+                                const vy = hip.y - shoulder.y
+                                // Angle relative to vertical (downward). atan2(x,y)
+                                const deg = Math.abs((Math.atan2(vx, vy) * 180) / Math.PI)
+                                torsoAngles.push(deg)
+                            }
+                            calcTorso(ls, lh)
+                            calcTorso(rs, rh)
+                            if (torsoAngles.length) {
+                                torsoAngleRef.current = torsoAngles.reduce((a, b) => a + b, 0) / torsoAngles.length
+                            }
+
                             // Hips present? (either hip landmark visible)
                             const hipsInFrame = (lm[23]?.visibility ?? 0) > 0.4 || (lm[24]?.visibility ?? 0) > 0.4
-                            if (hipsInFrame) {
+                            const torsoAngleOk = (torsoAngleRef.current ?? 0) >= 13
+                            if (hipsInFrame && torsoAngleOk) {
                                 if (angle <= DEPTH_THRESHOLD) {
                                     depthReachedRef.current = true
                                     phaseRef.current = 'down'
@@ -202,6 +229,10 @@ function RouteComponent() {
                                     depthReachedRef.current = false
                                     phaseRef.current = 'up'
                                 }
+                            } else if (!torsoAngleOk) {
+                                // If torso not yet at required angle, ensure we don't keep partial depth state
+                                depthReachedRef.current = false
+                                phaseRef.current = 'up'
                             }
                         }
                     } catch {
@@ -238,14 +269,19 @@ function RouteComponent() {
                 }
 
                 // Overlay panel
-                const panelW = 140
-                const panelH = 40
+                const panelW = 180
+                const panelH = 60
                 ctx.fillStyle = 'rgba(0,0,0,0.45)'
                 ctx.fillRect(8, 28, panelW, panelH)
                 ctx.textAlign = 'left'
                 ctx.font = '18px sans-serif'
                 ctx.fillStyle = '#4ade80'
                 ctx.fillText(`Reps: ${repCountRef.current}`, 16, 52)
+                if (torsoAngleRef.current != null) {
+                    ctx.font = '12px sans-serif'
+                    ctx.fillStyle = '#fff'
+                    ctx.fillText(`Torso: ${Math.round(torsoAngleRef.current)}°`, 16, 68)
+                }
 
                 ctx.restore()
             })
