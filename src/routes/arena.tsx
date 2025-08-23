@@ -237,7 +237,7 @@ function RouteComponent() {
                     <>
                         <div
                             id="rope"
-                            className="absolute bottom-[34%] h-[2%] border-3 border-amber-400 bg-amber-600 transition-all"
+                            className="absolute bottom-[34%] h-[2%] border-2 border-amber-500 bg-[url(/rope.png)] transition-all"
                             style={{ left: `${18 + ropePos * 3}%`, right: `${18 + -ropePos * 3}%` }}
                         />
                         <img
