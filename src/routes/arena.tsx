@@ -6,6 +6,7 @@ export const Route = createFileRoute('/arena')({
 })
 
 function RouteComponent() {
+    const [ropePos, setRopePos] = useState(0)
     return (
         <>
             <section id="environment" className="absolute inset-0">
@@ -27,13 +28,23 @@ function RouteComponent() {
                     alt="Left warrior"
                     src="/warrior-left.png"
                     draggable={false}
-                    className={cn('pointer-events-none absolute bottom-[9%] h-[44%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none')}
+                    style={{ left: `${8 + ropePos * 3}%` }}
+                    className={cn(
+                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none',
+                        rightWins && 'bottom-[2%]! left-[2%]! h-[10%] animate-spin',
+                        leftWins && 'left-[2%]! h-[56%]'
+                    )}
                 />
                 <img
                     alt="Right warrior"
                     src="/warrior-right.png"
                     draggable={false}
-                    className={cn('pointer-events-none absolute bottom-[9%] h-[44%] w-auto drop-shadow-2xl drop-shadow-red-900 transition-all select-none')}
+                    style={{ right: `${8 + -ropePos * 3}%` }}
+                    className={cn(
+                        'pointer-events-none absolute bottom-[9%] h-[48%] w-auto drop-shadow-2xl drop-shadow-blue-900 transition-all select-none',
+                        leftWins && 'right-[2%]! bottom-[2%]! h-[10%] animate-spin',
+                        rightWins && 'right-[2%]! h-[56%]'
+                    )}
                 />
             </section>
             <section className="absolute top-6 left-6">
