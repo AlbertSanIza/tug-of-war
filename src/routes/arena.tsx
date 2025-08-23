@@ -1,4 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import confetti from 'canvas-confetti'
+import Peer, { type DataConnection } from 'peerjs'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/arena')({
