@@ -1,7 +1,6 @@
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { REGEXP_ONLY_CHARS } from 'input-otp'
-import { ArrowBigLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -35,15 +34,6 @@ function RouteComponent() {
                     onEscapeKeyDown={(event) => event.preventDefault()}
                     onInteractOutside={(event) => event.preventDefault()}
                 >
-                    <Button
-                        type="button"
-                        size="icon"
-                        variant="outline"
-                        onClick={() => router.history.back()}
-                        className="absolute top-4 right-4 text-orange-500 hover:text-orange-600"
-                    >
-                        <ArrowBigLeft className="h-6 w-6" />
-                    </Button>
                     <DialogHeader>
                         <DialogTitle>Enter Arena</DialogTitle>
                         <DialogDescription className="hidden" />
@@ -112,9 +102,20 @@ function RouteComponent() {
                         <form.Subscribe
                             selector={(state) => [state.canSubmit, state.isSubmitting]}
                             children={([canSubmit, isSubmitting]) => (
-                                <Button type="submit" disabled={!canSubmit || isSubmitting}>
-                                    Connect
-                                </Button>
+                                <div className="flex gap-1">
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => router.history.back()}
+                                        className="flex-1 text-orange-500 hover:text-orange-600"
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button type="submit" disabled={!canSubmit || isSubmitting} className="flex-1">
+                                        Connect
+                                    </Button>
+                                </div>
                             )}
                         />
                     </form>
