@@ -263,13 +263,13 @@ function RouteComponent() {
     return (
         <div className="flex flex-col gap-4 p-4">
             <h1 className="text-xl font-semibold">Camera / Holistic Demo</h1>
-            <div className="flex gap-4 flex-wrap">
+            <div className="flex flex-wrap gap-4">
                 <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 text-sm">
                         <select
                             value={effect}
                             onChange={(e) => setEffect(e.target.value as 'background' | 'mask')}
-                            className="border rounded px-2 py-1 text-sm"
+                            className="rounded border px-2 py-1 text-sm"
                         >
                             <option value="background">Background</option>
                             <option value="mask">Foreground</option>
@@ -280,13 +280,13 @@ function RouteComponent() {
                         <select
                             value={selectedSide}
                             onChange={(e) => setSelectedSide(e.target.value as 'left' | 'right')}
-                            className="border rounded px-2 py-1 text-sm"
+                            className="rounded border px-2 py-1 text-sm"
                         >
                             <option value="right">Right arm</option>
                             <option value="left">Left arm</option>
                         </select>
                         <button
-                            className="border rounded px-2 py-1 text-sm hover:bg-secondary"
+                            className="rounded border px-2 py-1 text-sm hover:bg-secondary"
                             onClick={() => {
                                 repCountRef.current = 0
                                 setReps(0)
@@ -304,9 +304,9 @@ function RouteComponent() {
                         </p>
                     )}
                 </div>
-                <div className="relative h-full w-full flex justify-center items-center">
-                    <canvas ref={canvasRef} className="rounded border  h-2xl w-2xl" />
-                    <video ref={videoRef} autoPlay muted playsInline className="selfie opacity-0 hidden" />
+                <div className="relative flex h-full w-full items-center justify-center">
+                    <canvas ref={canvasRef} className="h-2xl w-2xl rounded border" />
+                    <video ref={videoRef} autoPlay muted playsInline className="selfie hidden opacity-0" />
                 </div>
             </div>
             <p className="text-xs opacity-70">Powered by MediaPipe Holistic</p>

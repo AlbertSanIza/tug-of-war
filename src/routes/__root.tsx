@@ -7,7 +7,7 @@ export const Route = createRootRoute({
 function RootComponent() {
     return (
         <main className="fixed flex size-full items-center justify-center">
-            <div className="w-screen h-screen bg-[url('/arena2.png')] bg-contain bg-no-repeat bg-top">
+            <div className="h-screen w-screen bg-[url('/arena2.png')] bg-contain bg-top bg-no-repeat">
                 <Outlet />
             </div>
         </main>

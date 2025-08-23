@@ -1,7 +1,10 @@
 {
+    "plugins": ["prettier-plugin-tailwindcss"],
     "printWidth": 160,
     "semi": false,
     "singleQuote": true,
     "tabWidth": 4,
+    "tailwindFunctions": ["clsx", "cn", "cva", "twMerge"],
+    "tailwindStylesheet": "./src/index.css",
     "trailingComma": "none"
 }
