@@ -24,6 +24,7 @@ function RouteComponent() {
     const [countdown, setCountdown] = useState<number | null>(null)
     const [status, setStatus] = useState<ArenaConnectionState>('idle')
     const [winnerPeerId, setWinnerPeerId] = useState<string | null>(null)
+    const [peerNames, setPeerNames] = useState<Record<string, string>>({})
     const leftRightPeers = useMemo(() => ({ left: gladiatorIds[0], right: gladiatorIds[1] }), [gladiatorIds])
 
     const videoLeftRef = useRef<HTMLVideoElement | null>(null)
@@ -32,7 +33,6 @@ function RouteComponent() {
 
     const gameStateRef = useRef<ArenaGameState>('idle')
     const countdownTimerRef = useRef<number | null>(null)
-    const peerNamesRef = useRef<Record<string, string>>({})
     const [readyPeerIds, setReadyPeerIds] = useState<string[]>([])
     const dataConnsRef = useRef<Record<string, DataConnection>>({})
     const [gameState, setGameState] = useState<ArenaGameState>('idle')
@@ -86,7 +86,11 @@ function RouteComponent() {
                 switch (type) {
                     case 'intro':
                         if (name) {
-                            peerNamesRef.current[conn.peer] = name
+                            setPeerNames((prev) => {
+                                const newState = { ...prev }
+                                newState[conn.peer] = name
+                                return newState
+                            })
                         }
                         break
                     case 'ready':
@@ -208,7 +212,7 @@ function RouteComponent() {
                         <video ref={videoLeftRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', leftWins && 'max-h-140')} playsInline />
                     </div>
                     <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', leftWins && 'animate-pulse text-8xl font-black')}>
-                        {peerNamesRef.current[leftRightPeers.left]} {leftWins && 'WINS!'}
+                        {peerNames[leftRightPeers.left]} {leftWins && 'WINS!'}
                     </span>
                 </div>
                 {gameState !== 'finished' && <span className="mt-14 text-6xl font-bold text-orange-200 text-shadow-lg/30">vs</span>}
@@ -224,7 +228,7 @@ function RouteComponent() {
                         <video ref={videoRightRef} className={cn('aspect-video h-5000 max-h-30 w-full object-cover', rightWins && 'max-h-140')} playsInline />
                     </div>
                     <span className={cn('text-3xl font-semibold text-orange-200 text-shadow-lg/30', rightWins && 'animate-pulse text-8xl font-bold')}>
-                        {peerNamesRef.current[leftRightPeers.right]} {rightWins && 'WINS!'}
+                        {peerNames[leftRightPeers.right]} {rightWins && 'WINS!'}
                     </span>
                 </div>
             </section>
