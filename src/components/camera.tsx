@@ -202,7 +202,7 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
 
                             // Hips present? (either hip landmark visible)
                             const hipsInFrame = (lm[23]?.visibility ?? 0) > 0.4 || (lm[24]?.visibility ?? 0) > 0.4
-                            const torsoAngleOk = (torsoAngleRef.current ?? 0) >= 13
+                            const torsoAngleOk = (torsoAngleRef.current ?? 0) >= 10
                             if (hipsInFrame && torsoAngleOk) {
                                 if (angle <= DEPTH_THRESHOLD) {
                                     depthReachedRef.current = true
@@ -215,7 +215,6 @@ export function CameraRouteComponent({ className, onCount }: { className?: strin
                                     phaseRef.current = 'up'
                                 }
                             } else if (!torsoAngleOk) {
-                                // If torso not yet at required angle, ensure we don't keep partial depth state
                                 depthReachedRef.current = false
                                 phaseRef.current = 'up'
                             }
