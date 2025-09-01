@@ -1,3 +1,6 @@
+![Tug of War](https://github.com/user-attachments/assets/254d09bd-902d-402c-81af-525394f51785)
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
